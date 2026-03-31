@@ -21,13 +21,16 @@ function App() {
   const [tasks, setTasks] = useState([]);
   const [title, setTitle] = useState("");
 
-  // 🔥 URL dinâmica (Vercel)
-  const API_URL = process.env.REACT_APP_API_URL;
+  // 🔥 FALLBACK INTELIGENTE (resolve seu problema)
+  const API_URL =
+    process.env.REACT_APP_API_URL ||
+    "https://focus-ai-dashboard-603p.onrender.com";
 
   const fetchTasks = () => {
     fetch(`${API_URL}/tasks`)
       .then(res => res.json())
-      .then(data => setTasks(data));
+      .then(data => setTasks(data))
+      .catch(err => console.error("Erro ao buscar tasks:", err));
   };
 
   useEffect(() => {
@@ -37,24 +40,32 @@ function App() {
   const addTask = async () => {
     if (!title) return;
 
-    await fetch(`${API_URL}/tasks`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ title })
-    });
+    try {
+      await fetch(`${API_URL}/tasks`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ title })
+      });
 
-    setTitle("");
-    fetchTasks();
+      setTitle("");
+      fetchTasks();
+    } catch (err) {
+      console.error("Erro ao adicionar tarefa:", err);
+    }
   };
 
   const toggleTask = async (index) => {
-    await fetch(`${API_URL}/tasks/${index}`, {
-      method: "PUT"
-    });
+    try {
+      await fetch(`${API_URL}/tasks/${index}`, {
+        method: "PUT"
+      });
 
-    fetchTasks();
+      fetchTasks();
+    } catch (err) {
+      console.error("Erro ao atualizar tarefa:", err);
+    }
   };
 
   const completed = tasks.filter(t => t.done).length;
